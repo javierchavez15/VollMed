@@ -10,15 +10,16 @@ import org.springframework.data.jpa.repository.Query;
 public interface MedicoRepository extends JpaRepository<Medico, Long> {
     Page<Medico> findByActivoTrue(Pageable paginacion);
 
+    // primer cambio medico aleatorio
     @Query("""
-            select m from Medico m 
-            where m.activo=1 and 
-            m.especialidad=:especialdad and 
+            select m from Medico m
+            where m.activo=1 and
+            m.especialidad=:especialdad and
             m.id not in (
                 select c.medico.id from Consulta c
-                c.dada=:fecha 
-            ) 
-            order by rand() 
+                c.dada=:fecha
+            )
+            order by rand()
             limit 1
             """)
     Medico seleccionarMedicoConEspecialidadenFecha(Especialidad especialidad, LocalDateTime fecha);
