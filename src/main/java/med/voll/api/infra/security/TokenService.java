@@ -1,19 +1,17 @@
 package med.voll.api.infra.security;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-
 import med.voll.api.domain.usuarios.Usuario;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 public class TokenService {
@@ -30,7 +28,7 @@ public class TokenService {
                     .withClaim("id", usuario.getId())
                     .withExpiresAt(generarFechaExpiracion())
                     .sign(algorithm);
-        } catch (JWTCreationException exception) {
+        } catch (JWTCreationException exception){
             throw new RuntimeException();
         }
     }
@@ -41,25 +39,23 @@ public class TokenService {
         }
         DecodedJWT verifier = null;
         try {
-            Algorithm algorithm = Algorithm.HMAC256(apiSecret);
+            Algorithm algorithm = Algorithm.HMAC256(apiSecret); // validando firma
             verifier = JWT.require(algorithm)
-                    // specify an specific claim validations
                     .withIssuer("voll med")
-                    // reusable verifier instance
-                    .build().verify(token);
+                    .build()
+                    .verify(token);
             verifier.getSubject();
-            // decodedJWT = verifier.verify(token);
         } catch (JWTVerificationException exception) {
             System.out.println(exception.toString());
         }
         if (verifier.getSubject() == null) {
-            throw new RuntimeException("Verrifie invalido");
+            throw new RuntimeException("Verifier invalido");
         }
         return verifier.getSubject();
     }
 
     private Instant generarFechaExpiracion() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-08:00"));
-
+        return LocalDateTime.now().plusHours(9).toInstant(ZoneOffset.of("-05:00"));
     }
+
 }

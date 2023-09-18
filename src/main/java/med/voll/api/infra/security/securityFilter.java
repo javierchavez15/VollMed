@@ -2,8 +2,6 @@ package med.voll.api.infra.security;
 
 import java.io.IOException;
 
-import javax.management.RuntimeErrorException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,35 +15,28 @@ import jakarta.servlet.http.HttpServletResponse;
 import med.voll.api.domain.usuarios.UsuarioRepository;
 
 @Component
-public class securityFilter extends OncePerRequestFilter{
-    
+public class SecurityFilter extends OncePerRequestFilter {
+
     @Autowired
     private TokenService tokenService;
-
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain){
-        var authHeder= request.getHeader("Authorization");
-        if(authHeder!=null){
-            var token= authHeder.replace("Bearer ", "");
-            System.out.println(token);
-            var subject = tokenService.getSubject(token);
-            if(subject!=null){
-            System.out.println("vaca");    
-            System.out.println(subject);
-                var usuario= usuarioRepository.findByLogin(subject);
-                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // Obtener el token del header
+        var authHeader = request.getHeader("Authorization");
+        if (authHeader != null) {
+            var token = authHeader.replace("Bearer ", "");
+            var nombreUsuario = tokenService.getSubject(token); // extract username
+            if (nombreUsuario != null) {
+                // Token valido
+                var usuario = usuarioRepository.findByLogin(nombreUsuario);
+                var authentication = new UsernamePasswordAuthenticationToken(usuario, null,
+                        usuario.getAuthorities()); // Forzamos un inicio de sesion
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
-        try {
-            filterChain.doFilter(request, response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ServletException e) {
-            e.printStackTrace();
-        }
+        filterChain.doFilter(request, response);
     }
 }

@@ -1,5 +1,6 @@
 package med.voll.api.controller;
 
+
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import med.voll.api.domain.direccion.DatosDireccion;
@@ -11,22 +12,25 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.net.URI;
 
 @RestController
 @RequestMapping("/medicos")
+@SecurityRequirement(name = "bearer-key")
 public class MedicoController {
 
     @Autowired
     private MedicoRepository medicoRepository;
 
     @PostMapping
-    public ResponseEntity<DatosRespuestaMedico> registrarMedico(
-            @RequestBody @Valid DatosRegistroMedico datosRegistroMedico,
-            UriComponentsBuilder uriComponentsBuilder) {
+    @Transactional
+    public ResponseEntity<DatosRespuestaMedico> registrarMedico(@RequestBody @Valid DatosRegistroMedico datosRegistroMedico,
+                                                                UriComponentsBuilder uriComponentsBuilder) {
         Medico medico = medicoRepository.save(new Medico(datosRegistroMedico));
-        DatosRespuestaMedico datosRespuestaMedico = new DatosRespuestaMedico(medico.getId(),
-                medico.getNombre(), medico.getEmail(),
+        DatosRespuestaMedico datosRespuestaMedico = new DatosRespuestaMedico(medico.getId(), medico.getNombre(), medico.getEmail(),
                 medico.getTelefono(), medico.getEspecialidad().toString(),
                 new DatosDireccion(medico.getDireccion().getCalle(), medico.getDireccion().getDistrito(),
                         medico.getDireccion().getCiudad(), medico.getDireccion().getNumero(),
@@ -39,7 +43,7 @@ public class MedicoController {
 
     @GetMapping
     public ResponseEntity<Page<DatosListadoMedico>> listadoMedicos(@PageableDefault(size = 2) Pageable paginacion) {
-        // return medicoRepository.findAll(paginacion).map(DatosListadoMedico::new);
+//        return medicoRepository.findAll(paginacion).map(DatosListadoMedico::new);
         return ResponseEntity.ok(medicoRepository.findByActivoTrue(paginacion).map(DatosListadoMedico::new));
     }
 
